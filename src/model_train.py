@@ -19,6 +19,7 @@ from utils import logger, set_seed, get_device, get_transforms, save_model
 
 set_seed(settings.random_seed)
 device = get_device()
+print(f"[STATUS] Using device: {device}", flush=True)
 
 def get_dvc_dataset_hash(dvc_file_path: str = "data/Preprocessed.dvc") -> str:
     if os.path.exists(dvc_file_path):
@@ -59,6 +60,7 @@ class SimpleCNN(nn.Module):
         return x
 
 def get_dataloaders():
+    print("[STATUS] Loading datasets and applying transformations...", flush=True)
     train_transforms = get_transforms(image_size=settings.image_size, augment=True)
     val_transforms = get_transforms(image_size=settings.image_size, augment=False)
 
@@ -76,6 +78,7 @@ def get_dataloaders():
     train_loader = DataLoader(train_dataset, batch_size=settings.batch_size, shuffle=True, num_workers=0)
     val_loader = DataLoader(val_dataset, batch_size=settings.batch_size, shuffle=False, num_workers=0)
 
+    print(f"[STATUS] Datasets loaded successfully. Train samples: {len(train_dataset)} | Val samples: {len(val_dataset)}", flush=True)
     return train_loader, val_loader, train_dataset.classes
 
 def plot_and_save_metrics(train_losses, val_losses, train_accs, val_accs, output_dir):
@@ -121,7 +124,9 @@ def plot_and_save_confusion_matrix(y_true, y_pred, class_names, output_dir):
     return cm_path
 
 def train():
-    logger.info(f"Using compute device: {device}")
+    print(f"\n==================================================", flush=True)
+    print(f"[START] Initializing training pipeline on device: {device}", flush=True)
+    print(f"==================================================\n", flush=True)
 
     mlflow.set_tracking_uri(settings.mlflow_tracking_uri)
     mlflow.set_experiment(settings.mlflow_experiment_name)
@@ -149,11 +154,17 @@ def train():
         })
 
         best_val_acc = 0.0
+        total_batches = len(train_loader)
 
         for epoch in range(1, settings.epochs + 1):
+            print(f"\n--------------------------------------------------", flush=True)
+            print(f"[EPOCH START] Epoch {epoch}/{settings.epochs}", flush=True)
+            print(f"--------------------------------------------------", flush=True)
+            
             model.train()
             running_loss, correct, total = 0.0, 0, 0
-            for images, labels in train_loader:
+            
+            for step, (images, labels) in enumerate(train_loader, 1):
                 images, labels = images.to(device), labels.to(device)
                 optimizer.zero_grad()
                 outputs = model(images)
@@ -166,9 +177,20 @@ def train():
                 correct += (preds == labels).sum().item()
                 total += labels.size(0)
 
+                # Batch progress update every 20% of batches or every 20 batches
+                if step % max(1, total_batches // 5) == 0 or step == total_batches:
+                    current_loss = running_loss / total
+                    current_acc = (correct / total) * 100
+                    print(
+                        f"  -> Batch [{step}/{total_batches}] | "
+                        f"Current Train Loss: {current_loss:.4f} | Current Train Acc: {current_acc:.2f}%",
+                        flush=True
+                    )
+
             epoch_train_loss = running_loss / total
             epoch_train_acc = (correct / total) * 100
 
+            print(f"[STATUS] Running Validation for Epoch {epoch}...", flush=True)
             model.eval()
             val_running_loss, val_correct, val_total = 0.0, 0, 0
             all_preds, all_targets = [], []
@@ -202,17 +224,23 @@ def train():
                 "val_accuracy": epoch_val_acc,
             }, step=epoch)
 
-            logger.info(
-                f"Epoch [{epoch}/{settings.epochs}] "
+            summary_msg = (
+                f"[EPOCH END {epoch}/{settings.epochs}] "
                 f"Train Loss: {epoch_train_loss:.4f} | Train Acc: {epoch_train_acc:.2f}% | "
                 f"Val Loss: {epoch_val_loss:.4f} | Val Acc: {epoch_val_acc:.2f}%"
             )
+            print(summary_msg, flush=True)
+            logger.info(summary_msg)
 
             if epoch_val_acc > best_val_acc:
+                print(f"  *** New Best Validation Accuracy: {epoch_val_acc:.2f}% (Previous: {best_val_acc:.2f}%) ***", flush=True)
                 best_val_acc = epoch_val_acc
 
+        print(f"\n[STATUS] Saving model state dict to {settings.model_path}...", flush=True)
         save_model(model, settings.model_path)
+        print("[STATUS] Model saved successfully!", flush=True)
 
+        print("[STATUS] Generating evaluation plots...", flush=True)
         curves_path = plot_and_save_metrics(
             train_losses, val_losses, train_accs, val_accs, settings.output_dir
         )
@@ -224,6 +252,9 @@ def train():
         mlflow.log_artifact(cm_path, artifact_path="plots")
         mlflow.pytorch.log_model(model, artifact_path="model")
 
+        print(f"\n==================================================", flush=True)
+        print(f"[FINISHED] MLflow Run completed successfully! Run ID: {run.info.run_id}", flush=True)
+        print(f"==================================================\n", flush=True)
         logger.info(f"MLflow Run completed successfully! Run ID: {run.info.run_id}")
 
 if __name__ == "__main__":

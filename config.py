@@ -22,7 +22,8 @@ class Settings(BaseSettings):
     learning_rate: float = 0.001
 
     # MLflow Tracking
-    mlflow_tracking_uri: str = "sqlite:///mlflow.db"
+    #mlflow_tracking_uri: str = "sqlite:///mlflow.db"
+    mlflow_tracking_uri: str = "file:./mlruns"
     mlflow_experiment_name: str = "cats_vs_dogs_classification"
 
     # Paths
