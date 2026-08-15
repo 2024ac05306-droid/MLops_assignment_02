@@ -1,0 +1,43 @@
+# DVC ignore file (similar to .gitignore)
+# Patterns here are excluded from DVC operations
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.egg-info
+.pytest_cache
+.tox
+.venv
+venv
+env
+
+# IDEs
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints
+*.ipynb
+
+# Logs (don't track large log files)
+logs/*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# System
+.git
+.github
+
+# DVC internal
+.dvc
+.dvcignore

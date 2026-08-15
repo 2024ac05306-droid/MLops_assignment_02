@@ -1,0 +1,54 @@
+stages:
+  download:
+    cmd: python -m src.Download_raw_data
+    deps:
+      - src/Download_raw_data.py
+      - config.py
+      - utils.py
+    outs:
+      - data/raw/PetImages
+
+  prepare:
+    cmd: python -m src.data_preprocess
+    deps:
+      - src/data_preprocess.py
+      - config.py
+      - utils.py
+      - data/raw
+    outs:
+      - data/Preprocessed
+
+  train:
+    cmd: python -m src.model_train
+    deps:
+      - src/model_train.py
+      - config.py
+      - utils.py
+      - data/Preprocessed
+    outs:
+      - models/baseline_cnn.pt
+
+  evaluate:
+    cmd: python -m src.model_eval
+    deps:
+      - src/model_eval.py
+      - config.py
+      - utils.py
+      - models/baseline_cnn.pt
+      - data/Preprocessed/test
+    metrics:
+      - outputs/metrics.json:
+          cache: false
+    plots:
+      - outputs/test_confusion_matrix.png:
+          cache: false
+  predict:
+    cmd: python -m src.model_predict
+    deps:
+      - src/model_predict.py
+      - config.py
+      - utils.py
+      - models/baseline_cnn.pt
+      - data/Preprocessed/test
+    outs:
+      - outputs/predictions.json

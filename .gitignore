@@ -1,0 +1,58 @@
+# Environment
+.env
+.env.local
+*.pyc
+__pycache__/
+
+# Data
+data/raw/*
+data/Preprocessed/*
+!data/.gitkeep
+
+# Models
+models/*
+!models/.gitkeep
+
+# Outputs
+!outputs/.gitkeep
+
+# Logs
+logs/*
+!logs/.gitkeep
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# MLflow
+mlruns/
+.mlflow
+
+# TensorBoard
+runs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+venv/
+env/
+conda-env/
+
+# DVC
+.dvc/tmp
+.dvc/cache
+.dvc/plots
