@@ -8,6 +8,7 @@ import mlflow.pytorch
 import torch
 import torch.nn.functional as F
 from PIL import Image
+from tqdm import tqdm  # <--- Step 1: Add tqdm import
 
 # Ensure project root directory is added to sys.path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
@@ -69,10 +70,12 @@ def predict(input_path: str = None):
 
     logger.info(f"Running predictions on {len(image_paths)} images...")
 
-    # 5. Batch Inference Loop
+    # 5. Batch Inference Loop with tqdm Progress Tracking
     results = []
+    progress_bar = tqdm(image_paths, desc="Running Predictions", unit="img") # <--- Step 2: Wrap loop
+
     with torch.no_grad():
-        for img_path in image_paths:
+        for img_path in progress_bar:
             try:
                 img = Image.open(img_path).convert("RGB")
                 tensor = transforms_pipeline(img).unsqueeze(0).to(device)

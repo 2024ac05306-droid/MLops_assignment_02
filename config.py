@@ -1,4 +1,6 @@
 from pydantic_settings import BaseSettings
+import os
+os.environ["MLFLOW_ALLOW_FILE_STORE"] = "true"
 
 class Settings(BaseSettings):
     # General
@@ -10,15 +12,15 @@ class Settings(BaseSettings):
     # Data & Image Config
     data_path: str = "./data/raw/PetImages"
     processed_data_path: str = "./data/Preprocessed"
-    image_size: int = 224
+    image_size: int = 128
     train_size: float = 0.8
     val_size: float = 0.1
     test_size: float = 0.1
 
     # Training Hyperparameters
     model_type: str = "SimpleCNN"
-    batch_size: int = 32
-    epochs: int = 10
+    batch_size: int = 64
+    epochs: int = 5
     learning_rate: float = 0.001
 
     # MLflow Tracking

@@ -75,8 +75,8 @@ def get_dataloaders():
     train_dataset = datasets.ImageFolder(root=train_dir, transform=train_transforms)
     val_dataset = datasets.ImageFolder(root=val_dir, transform=val_transforms)
 
-    train_loader = DataLoader(train_dataset, batch_size=settings.batch_size, shuffle=True, num_workers=0)
-    val_loader = DataLoader(val_dataset, batch_size=settings.batch_size, shuffle=False, num_workers=0)
+    train_loader = DataLoader(train_dataset, batch_size=settings.batch_size, shuffle=True, num_workers=2)
+    val_loader = DataLoader(val_dataset, batch_size=settings.batch_size, shuffle=False, num_workers=2)
 
     print(f"[STATUS] Datasets loaded successfully. Train samples: {len(train_dataset)} | Val samples: {len(val_dataset)}", flush=True)
     return train_loader, val_loader, train_dataset.classes

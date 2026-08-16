@@ -16,6 +16,7 @@ from sklearn.metrics import (
 )
 from torch.utils.data import DataLoader
 from torchvision import datasets
+from tqdm import tqdm  # <--- Step 1: Add tqdm import
 
 # Ensure project root directory is added to sys.path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
@@ -23,16 +24,6 @@ sys.path.append(str(Path(__file__).resolve().parent.parent))
 from config import settings
 from src.model_train import SimpleCNN
 from utils import get_device, get_transforms, logger, set_seed
-
-
-def get_dvc_dataset_hash(dvc_file_path: str = "data/Preprocessed.dvc") -> str:
-    """Reads the md5 hash from the DVC tracking file for dataset lineage."""
-    if os.path.exists(dvc_file_path):
-        with open(dvc_file_path, "r") as f:
-            for line in f:
-                if "md5:" in line:
-                    return line.split(":")[1].strip()
-    return "untracked_local_dataset"
 
 
 def evaluate():
@@ -74,8 +65,11 @@ def evaluate():
     running_loss = 0.0
     criterion = nn.CrossEntropyLoss()
 
+    # Step 2: Wrap DataLoader with tqdm progress bar
+    progress_bar = tqdm(test_loader, desc="Evaluating Test Set", unit="batch")
+
     with torch.no_grad():
-        for images, labels in test_loader:
+        for images, labels in progress_bar:
             images, labels = images.to(device), labels.to(device)
             outputs = model(images)
             loss = criterion(outputs, labels)
@@ -85,6 +79,9 @@ def evaluate():
 
             all_preds.extend(preds.cpu().numpy())
             all_targets.extend(labels.cpu().numpy())
+
+            # Step 3: Update progress bar display with batch loss
+            progress_bar.set_postfix({"batch_loss": f"{loss.item():.4f}"})
 
     # Calculate Standard Metrics
     test_loss = running_loss / len(test_dataset)
@@ -100,16 +97,13 @@ def evaluate():
 
     # Log to MLflow
     with mlflow.start_run(run_name="model_evaluation_stage"):
-        # Log Hyperparameters + DVC Hash
         mlflow.log_params({
             "stage": "evaluation",
             "eval_batch_size": settings.batch_size,
             "model_path": model_path,
             "test_sample_count": len(test_dataset),
-            "dvc_dataset_hash": get_dvc_dataset_hash(),  # DVC Integration
         })
 
-        # Log Metrics
         mlflow.log_metrics({
             "test_loss": test_loss,
             "test_accuracy": accuracy,
@@ -118,7 +112,6 @@ def evaluate():
             "test_f1_score": f1,
         })
 
-        # Log Confusion Matrix Plot
         os.makedirs(settings.output_dir, exist_ok=True)
         cm = confusion_matrix(all_targets, all_preds)
         disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=class_names)
@@ -132,7 +125,6 @@ def evaluate():
 
         mlflow.log_artifact(cm_path, artifact_path="evaluation_artifacts")
 
-        # Save metrics.json for DVC tracking
         metrics_dict = {
             "test_loss": test_loss,
             "test_accuracy": accuracy,
