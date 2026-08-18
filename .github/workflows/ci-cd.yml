@@ -117,8 +117,8 @@ jobs:
 
       - name: Deploy Using Docker Compose
         run: |
-          docker compose -f deploy/docker-compose.yaml pull
-          docker compose -f deploy/docker-compose.yaml up -d
+          docker compose -f deploy/docker-compose.yml pull
+          docker compose -f deploy/docker-compose.yml up -d
 
   # ==================================================
   # STAGE 4 - SMOKE TESTS
