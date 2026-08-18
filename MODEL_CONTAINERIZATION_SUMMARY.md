@@ -140,8 +140,7 @@ curl -X POST "http://localhost:8000/predict" \
 
 ## ⚠️ Important Notes
 
-1. **Not Heart Disease Prediction** — This is an image classification API, not medical prediction
-2. **Image Input Required** — `/predict` accepts file uploads, not JSON payloads
-3. **Model Must Be Trained** — Run `python -m src.model_train` before starting the API
-4. **DVC Integration** — Model artifacts are managed via DVC for versioning
-5. **Production Ready** — Includes health checks, logging, error handling, and non-root execution
+1. **Image Input Required** — `/predict` accepts file uploads, not JSON payloads
+2. **Model Must Be Trained** — Run `python -m src.model_train` before starting the API
+3. **DVC Integration** — Model artifacts are managed via DVC for versioning4
+4. **Production Ready** — Includes health checks, logging, error handling, and non-root execution
