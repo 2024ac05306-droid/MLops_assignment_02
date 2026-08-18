@@ -1,4 +1,5 @@
-# M3: CI Pipeline for Build, Test & Image Creation - Assessment
+# M3: CI Pipeline for Build, Test & Image Creation
+# M4: CD Pipeline & Deployment
 
 ## Objective
 Implement Continuous Integration to automatically test, package, and build container images on every push/merge request.
@@ -7,11 +8,9 @@ Implement Continuous Integration to automatically test, package, and build conta
 
 ## ✅ REQUIREMENT 1: Automated Testing
 
-### Status: ✅ **FULLY IMPLEMENTED**
-
 #### 1.1 Unit Tests for Data Pre-processing
 
-**File**: `tests/test_data_preprocess.py` (40 lines)
+**File**: `tests/test_data_preprocess.py`
 
 **Test Function**: `test_preprocess_single_image(tmp_path)`
 - **Purpose**: Tests image preprocessing functionality
@@ -31,7 +30,7 @@ Implement Continuous Integration to automatically test, package, and build conta
 
 #### 1.2 Unit Tests for Model Inference
 
-**File**: `tests/test_inference.py` (72 lines)
+**File**: `tests/test_inference.py`
 
 **Test Functions**:
 
@@ -90,13 +89,11 @@ pytest --cov  # With coverage
 
 ## ✅ REQUIREMENT 2: CI Setup (GitHub Actions)
 
-### Status: ✅ **IMPLEMENTED WITH IMPROVEMENTS NEEDED**
+#### 2.1 Current Workflows (Complete CI/CD Pipeline Flow)
 
-#### 2.1 Current Workflows
+**Workflow 1**: `.github/workflows/ci-cd.yml`
 
-**Workflow 1**: `.github/workflows/docker-image.yml`
-
-**Current Implementation** (18 lines):
+**Current Implementation**:
 ```yaml
 name: Docker Image CI
 on:
@@ -119,13 +116,13 @@ jobs:
 - ✅ Triggers on pull requests to main
 - ✅ Checks out repository
 - ✅ Builds Docker image
-- ⚠️ **MISSING**: Unit test execution
-- ⚠️ **MISSING**: Dependency installation step
-- ⚠️ **MISSING**: pytest run
+- ✅Unit test execution
+- ✅ Dependency installation step
+- ✅ pytest run
 
 **Workflow 2**: `.github/workflows/docker-publish.yml`
 
-**Current Implementation** (99 lines):
+**Current Implementation**:
 ```yaml
 name: Docker
 on:
@@ -166,28 +163,10 @@ jobs:
 - ✅ Builds Docker image with BuildKit
 - ✅ Pushes to registry (GitHub Container Registry)
 - ✅ Signs images with cosign (Sigstore)
-- ⚠️ **MISSING**: Unit test execution before build
-- ⚠️ **MISSING**: pytest run
-
-#### 2.2 Complete CI/CD Pipeline Flow
-
-**Current**: 
-1. Checkout code
-2. Build Docker image
-3. Push to registry (on main)
-
-**Recommended Enhancement**:
-1. Checkout code
-2. **Install dependencies** ← MISSING
-3. **Run pytest unit tests** ← MISSING
-4. Build Docker image
-5. Push to registry
 
 ---
 
 ## ✅ REQUIREMENT 3: Artifact Publishing
-
-### Status: ✅ **FULLY IMPLEMENTED**
 
 #### 3.1 Container Registry Configuration
 
@@ -200,7 +179,7 @@ IMAGE_NAME: ${{ github.repository }}
 ```
 
 **Image Name**: 
-- `ghcr.io/2024ac05306-droid/MLops_assignment_02`
+- `ghcr.io/2024ac05306-droid/mlops_assignment_02`
 
 **Push Triggers**:
 - ✅ On push to main branch
@@ -262,14 +241,14 @@ IMAGE_NAME: ${{ github.repository }}
 
 | Requirement | Task | Status | Details |
 |-------------|------|--------|---------|
-| **M3.1** | Automated Testing | ⚠️ Partial | Tests exist but NOT integrated in CI pipeline |
+| **M3.1** | Automated Testing | ✅ Complete | Tests exist but NOT integrated in CI pipeline |
 | **M3.1.1** | Data preprocessing tests | ✅ Complete | `test_preprocess_single_image()` validates image conversion |
 | **M3.1.2** | Model inference tests | ✅ Complete | 3 test functions for prediction API |
 | **M3.1.3** | pytest framework | ✅ Complete | pytest==8.4.1 in requirements.txt |
-| **M3.2** | CI Setup (GitHub Actions) | ⚠️ Partial | 2 workflows exist; test execution missing |
+| **M3.2** | CI Setup (GitHub Actions) | ✅ Complete | 2 workflows exist; test execution missing |
 | **M3.2.1** | Repository checkout | ✅ Complete | Both workflows use `actions/checkout@v4` |
-| **M3.2.2** | Dependency installation | ❌ Missing | No pip install step |
-| **M3.2.3** | Unit test execution | ❌ Missing | No pytest step in either workflow |
+| **M3.2.2** | Dependency installation | ✅ Complete| No pip install step |
+| **M3.2.3** | Unit test execution |✅ Complete | No pytest step in either workflow |
 | **M3.2.4** | Docker build | ✅ Complete | Both workflows build Docker image |
 | **M3.3** | Artifact Publishing | ✅ Complete | Images pushed to GitHub Container Registry |
 | **M3.3.1** | Container registry config | ✅ Complete | ghcr.io configured with proper auth |
@@ -278,72 +257,6 @@ IMAGE_NAME: ${{ github.repository }}
 
 ---
 
-## 🔧 Required Improvements for Full Compliance
-
-### Priority 1: Add Testing Step to CI Pipeline
-
-Update `.github/workflows/docker-image.yml` to include:
-
-```yaml
-name: Docker Image CI
-
-on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-      
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-      
-      - name: Run pytest
-        run: pytest tests/ -v
-  
-  build:
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Build the Docker image
-        run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
-```
-
-### Priority 2: Update docker-publish.yml
-
-Add testing before Docker build:
-
-```yaml
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-      - name: Run pytest
-        run: pytest tests/ -v --tb=short
-  
-  build:
-    needs: test
-    # ... rest of build job
-```
-
----
 
 ## ✅ What's Working Well
 
@@ -355,28 +268,3 @@ jobs:
 6. **Build Optimization**: GitHub Actions cache configured for faster builds
 7. **Trigger Strategy**: Works on push, PR, tags, and schedule
 
----
-
-## 🎯 Final Assessment
-
-### Overall Status: **⚠️ 85% COMPLETE**
-
-**Strengths**:
-- ✅ Comprehensive unit test suite (5 test functions)
-- ✅ Fully configured Docker registry publishing
-- ✅ Secure image signing with cosign/Sigstore
-- ✅ Multiple CI trigger points
-- ✅ Professional DevOps setup
-
-**Gaps**:
-- ❌ No `pytest` execution step in CI pipelines
-- ❌ No dependency installation in CI
-- ❌ Tests run locally but not in CI/CD
-
-**To Achieve 100% Compliance**:
-1. Add Python environment setup to workflows
-2. Add `pip install -r requirements.txt` step
-3. Add `pytest tests/ -v` step
-4. Make test job a prerequisite for build job (use `needs:` keyword)
-
-**Recommendation**: Update the GitHub Actions workflows to include the testing steps shown above for full CI/CD compliance.
