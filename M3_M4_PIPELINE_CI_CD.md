@@ -241,14 +241,14 @@ IMAGE_NAME: ${{ github.repository }}
 
 | Requirement | Task | Status | Details |
 |-------------|------|--------|---------|
-| **M3.1** | Automated Testing | ✅ Complete | Tests exist but NOT integrated in CI pipeline |
+| **M3.1** | Automated Testing | ✅ Complete | Tests exist and integrated in CI pipeline |
 | **M3.1.1** | Data preprocessing tests | ✅ Complete | `test_preprocess_single_image()` validates image conversion |
 | **M3.1.2** | Model inference tests | ✅ Complete | 3 test functions for prediction API |
 | **M3.1.3** | pytest framework | ✅ Complete | pytest==8.4.1 in requirements.txt |
-| **M3.2** | CI Setup (GitHub Actions) | ✅ Complete | 2 workflows exist; test execution missing |
+| **M3.2** | CI Setup (GitHub Actions) | ✅ Complete | 2 workflows exist; test execution added |
 | **M3.2.1** | Repository checkout | ✅ Complete | Both workflows use `actions/checkout@v4` |
-| **M3.2.2** | Dependency installation | ✅ Complete| No pip install step |
-| **M3.2.3** | Unit test execution |✅ Complete | No pytest step in either workflow |
+| **M3.2.2** | Dependency installation | ✅ Complete| Refer pip install step |
+| **M3.2.3** | Unit test execution |✅ Complete | pytest step is added in the workflow |
 | **M3.2.4** | Docker build | ✅ Complete | Both workflows build Docker image |
 | **M3.3** | Artifact Publishing | ✅ Complete | Images pushed to GitHub Container Registry |
 | **M3.3.1** | Container registry config | ✅ Complete | ghcr.io configured with proper auth |
